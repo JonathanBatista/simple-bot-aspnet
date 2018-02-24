@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using Microsoft.Bot.Connector;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace SimpleBot
 {
@@ -45,5 +47,6 @@ namespace SimpleBot
 
             await connector.Conversations.ReplyToActivityAsync(reply);
         }
+        
     }
 }
