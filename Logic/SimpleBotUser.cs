@@ -25,9 +25,7 @@ namespace SimpleBot
 
             var perfil = GetProfile(userId);
 
-            perfil.Visitas += 1;
-
-            //SetProfile(userId, perfil);            
+            perfil.Visitas += 1;           
 
             var botResponse = $"{message.User} conversou {perfil.Visitas} vezes";
 
