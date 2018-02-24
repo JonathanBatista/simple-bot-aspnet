@@ -45,7 +45,7 @@ namespace SimpleBot
             };
 
 
-            var col = db.GetCollection<object>("Messages");
+            var col = db.GetCollection<BsonDocument>("Messages");
 
             col.InsertOne(newDocument);
         }
