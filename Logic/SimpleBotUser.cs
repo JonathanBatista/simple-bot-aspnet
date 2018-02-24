@@ -15,9 +15,8 @@ namespace SimpleBot
 
         private static readonly IMongoDatabase _db = _cliente.GetDatabase("BotRecordMessage");
 
-        private static IUserRepo _repositorio = new UserSqlRepo(ConfigurationManager.AppSettings["sql"]);
-
-        
+        private static IUserRepo _sqlRepositorio = new UserSqlRepo(ConfigurationManager.AppSettings["sql"]);
+                
 
         public static string Reply(Message message)
         {
@@ -32,7 +31,7 @@ namespace SimpleBot
 
             var botResponse = $"{message.User} conversou {perfil.Visitas} vezes";
 
-            _repositorio.RecordMessages(message, botResponse);
+            _sqlRepositorio.RecordMessages(message, botResponse);
 
             return botResponse;
         }
@@ -89,7 +88,7 @@ namespace SimpleBot
         private static bool AtualizarProfile(string id, int qtdeVisitas)
         {
             var col = _db.GetCollection<UserProfile>("Perfil");
-
+            
             var update = Builders<UserProfile>.Update.Set(x => x.Visitas, qtdeVisitas);
             var filtro = Builders<UserProfile>.Filter.Where(x => x.Id.Equals(id));
 
