@@ -1,7 +1,9 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
+using SimpleBot.Repo;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web;
 
@@ -13,7 +15,7 @@ namespace SimpleBot
 
         private static readonly IMongoDatabase _db = _cliente.GetDatabase("BotRecordMessage");
 
-        private static Dictionary<string, UserProfile> _perfil = new Dictionary<string, UserProfile>();
+        private static IUserRepo _repositorio = new UserSqlRepo(ConfigurationManager.AppSettings["sql"]);
 
         
 
@@ -26,9 +28,11 @@ namespace SimpleBot
 
             perfil.Visitas += 1;
 
-            SetProfile(userId, perfil);
+            //SetProfile(userId, perfil);            
 
             var botResponse = $"{message.User} conversou {perfil.Visitas} vezes";
+
+            _repositorio.RecordMessages(message, botResponse);
 
             return botResponse;
         }
@@ -69,7 +73,7 @@ namespace SimpleBot
 
         public static void SetProfile(string id, UserProfile profile)
         {
-            _perfil[id] = profile;
+            //_perfil[id] = profile;
         }
 
 
@@ -95,24 +99,6 @@ namespace SimpleBot
         }
 
 
-        private static void RecordMessages(Message message, string botResponse)
-        {
-            var db = _cliente.GetDatabase("BotRecordMessage");
-
-            var newDocument = new BsonDocument()
-            {
-                { $"{message.User}", new BsonDocument(){
-                        { "userMessage", $"{message.Text}" },
-                        { "botMessage", botResponse },
-                    }
-                }
-                    
-            };
-
-
-            var col = db.GetCollection<BsonDocument>("Messages");
-
-            col.InsertOne(newDocument);
-        }
+        
     }
 }
