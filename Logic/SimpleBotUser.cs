@@ -1,19 +1,11 @@
-﻿using MongoDB.Bson;
-using MongoDB.Driver;
-using SimpleBot.Repo;
-using System;
-using System.Collections.Generic;
+﻿using SimpleBot.Repo;
 using System.Configuration;
-using System.Linq;
-using System.Web;
 
 namespace SimpleBot
 {
     public class SimpleBotUser
     {
-        private static MongoClient _cliente = new MongoClient();
-
-        private static readonly IMongoDatabase _db = _cliente.GetDatabase("BotRecordMessage");
+        private static IUserRepo _mongoRepo = new UserMongoRepo(ConfigurationManager.AppSettings["mongodb"]);
 
         private static IUserRepo _sqlRepositorio = new UserSqlRepo(ConfigurationManager.AppSettings["sql"]);
                 
@@ -37,32 +29,21 @@ namespace SimpleBot
         public static UserProfile GetProfile(string id)
         {
             UserProfile userProfile = null;
+            
+            userProfile = _mongoRepo.GetProfile(id);
 
-            try
+            if (userProfile == null)
             {
-                var col = _db.GetCollection<UserProfile>("Perfil");
-
-                var filtro = Builders<UserProfile>.Filter.Where(x => x.Id.Equals(id));
-
-                userProfile = col.Find(filtro).FirstOrDefault();
-
-                if (userProfile == null)
+                userProfile = new UserProfile()
                 {
-                    userProfile = new UserProfile()
-                    {
-                        Id = id,
-                        Visitas = 0
-                    };
+                    Id = id,
+                    Visitas = 0
+                };
 
-                    SalvarNovoProfile(userProfile);
-                }
-
-                AtualizarProfile(id, ++userProfile.Visitas);
+                SalvarNovoProfile(userProfile);
             }
-            catch (Exception ex)
-            {
-                throw;
-            }            
+
+            SetProfile(id, userProfile);
 
             
             return userProfile;
@@ -70,29 +51,18 @@ namespace SimpleBot
 
         public static void SetProfile(string id, UserProfile profile)
         {
-            //_perfil[id] = profile;
+            AtualizarProfile(id, ++profile.Visitas);
         }
 
 
         private static bool SalvarNovoProfile(UserProfile profile)
         {
-            var col = _db.GetCollection<UserProfile>("Perfil");
-
-            col.InsertOne(profile);
-
-            return true;
+            return _mongoRepo.SalvarProfile(profile);
         }
 
         private static bool AtualizarProfile(string id, int qtdeVisitas)
         {
-            var col = _db.GetCollection<UserProfile>("Perfil");
-            
-            var update = Builders<UserProfile>.Update.Set(x => x.Visitas, qtdeVisitas);
-            var filtro = Builders<UserProfile>.Filter.Where(x => x.Id.Equals(id));
-
-            col.UpdateOne(filtro, update);
-
-            return true;
+            return _mongoRepo.AtualizarProfile(qtdeVisitas, id);
         }
 
 
